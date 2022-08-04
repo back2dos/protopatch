@@ -4,14 +4,14 @@ class Proto {
 
     static function patch(cls, patches:Expr) {
         var ctor = null;
-        var ret = Patch.patchObject(
+        var patch = Patch.patchObject(
             macro protopatch.Proto.get($cls),
             patches,
             e -> ctor = e
         );
 
         return switch ctor {
-            case null: ret;
+            case null: patch;
             default:
                 switch typeof(macro $cls.new) {
                     case TFun(args, ret):
@@ -35,6 +35,7 @@ class Proto {
 
                         macro {
                             var __old__ = $cls;
+                            $patch;
                             var nu = if (false) $cls.new else ${replaceSuper(ctor)};
                             untyped $i{clsName} = nu;
                         }
