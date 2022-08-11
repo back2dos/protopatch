@@ -19,7 +19,7 @@ class RunTests {
           self.addEventListener('message', e -> trace('message received on websocket to $url: ${e.data}'));
           self;// must return self
       },
-      send: data -> {
+      send: (data:js.lib.ArrayBufferView) -> {
           trace('sending $data over websocket to ${this.url}');
           super(data);
       }

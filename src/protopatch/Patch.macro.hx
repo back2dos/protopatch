@@ -16,6 +16,8 @@ class Patch {
         }
 
     static public function patchObject(target, patches:Expr, ctor) {
+        target = storeExpr(target);
+
         return switch patches.expr {
             case EObjectDecl(fields):
                 var changes = [for (f in fields) switch f.field {
@@ -26,11 +28,28 @@ class Patch {
 
                     case name:
 
-                        macro @:pos(f.expr.pos) {
-                            var __old__ = if (false) __target__.$name else (cast __target__).$name;
-                            (cast __target__).$name =
-                                if (false) __old__;
-                                else ${replaceKeywords(f.expr)};
+                        var patch = replaceKeywords(f.expr),
+                            t = typeof(macro @:pos(f.expr.pos) $target.$name).toComplexType();
+
+                        switch patch.expr {
+                            case EObjectDecl(fields):
+
+                                for (f in fields) {
+                                    function as(ct)
+                                        f.expr = macro @:pos(f.expr.pos) cast (${f.expr}:$ct);
+                                    switch f.field {
+                                        case 'get': as(macro : () -> $t);
+                                        case 'set': as(macro : $t -> Void);
+                                    }
+                                }
+
+                                macro @:pos(patch.pos) js.lib.Object.defineProperty(__target__, $v{name}, ($patch:js.lib.Object.ObjectPropertyDescriptor));
+                            default:
+                                if (t != null) patch = macro @:pos(patch.pos) ($patch:$t);
+                                macro @:pos(patch.pos) {
+                                    var __old__ = if (false) __target__.$name else (cast __target__).$name;
+                                    (cast __target__).$name = ${patch};
+                                }
                         }
                 }];
 
