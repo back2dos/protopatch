@@ -35,7 +35,7 @@ protopatch.Proto.patch(js.html.WebSocket, {
 });
 ```
 
-The constructor must be overriden via a field called `constructor`, because `new` is syntactically not allowed. Also, you do not have access to `this` in the function and you must return the instance that was constructed. Incidentally,
+The constructor must be overriden via a field called `constructor`, because `new` is syntactically not allowed. Also, you do not have access to `this` in the function and you must return the instance that was constructed. Incidentally, you can use this to implement things like pooling etc.
 
 ### Alternatives
 
